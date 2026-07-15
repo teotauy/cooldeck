@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoolCoolCool — Capabilities</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<style>
+  :root{
+    --ink:#111315;
+    --ink-2:#191c1f;
+    --paper:#EDE9E2;
+    --paper-dim:#a7a49d;
+    --accent:#3D5CFF;
+    --line:#2a2d30;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'IBM Plex Sans', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; background:var(--ink); color:var(--paper); font-family:var(--body); overflow:hidden;}
+  #deck{position:relative; width:100vw; height:100vh;}
+  .slide{
+    position:absolute; inset:0;
+    display:none;
+    padding:6vw 7vw;
+    flex-direction:column;
+  }
+  .slide.active{display:flex;}
+  .eyebrow{
+    font-family:var(--mono); font-size:13px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:18px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:''; width:22px; height:1px; background:var(--accent); display:inline-block;}
+  h1{
+    font-family:var(--display); font-weight:600; font-size:clamp(34px,5vw,64px);
+    line-height:1.05; letter-spacing:-.01em; max-width:20ch;
+  }
+  h2{
+    font-family:var(--display); font-weight:600; font-size:clamp(22px,2.6vw,32px);
+    letter-spacing:-.01em; margin-bottom:6px;
+  }
+  p.lead{
+    font-size:clamp(16px,1.6vw,20px); color:var(--paper-dim); max-width:52ch; margin-top:18px; line-height:1.5;
+  }
+  .num{ font-family:var(--mono); color:var(--paper-dim); font-size:13px; }
+  .footer{
+    position:absolute; bottom:5vw; left:7vw; right:7vw;
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:12px; color:var(--paper-dim); letter-spacing:.05em;
+  }
+  .footer .dot{color:var(--accent);}
+  .body-wrap{ flex:1; display:flex; align-items:center; margin-top:2vh; }
+
+  /* COVER */
+  #s0 .body-wrap{align-items:flex-end;}
+  #s0 h1{font-size:clamp(40px,7vw,84px); max-width:16ch;}
+  #s0 .tag{font-family:var(--mono); font-size:14px; color:var(--paper-dim); margin-top:22px; max-width:44ch;}
+
+  /* Grid helper */
+  .grid{ display:grid; gap:28px; width:100%; }
+  .cols-3{ grid-template-columns:repeat(3,1fr); }
+  .cols-2{ grid-template-columns:repeat(2,1fr); }
+
+  .card{
+    border:1px solid var(--line); border-radius:2px; padding:26px 24px; background:var(--ink-2);
+  }
+  .card h3{font-family:var(--display); font-size:18px; font-weight:600; margin-bottom:10px;}
+  .card p{font-size:14.5px; color:var(--paper-dim); line-height:1.5;}
+
+  /* pillar pairs slide */
+  .pair{ border-left:1px solid var(--line); padding-left:18px; }
+  .pair .k{font-family:var(--mono); font-size:12px; color:var(--accent); margin-bottom:8px;}
+  .pair p{font-size:15px; color:var(--paper-dim); line-height:1.5;}
+
+  /* engagement overview - staircase */
+  .stairs{ display:flex; align-items:flex-end; gap:40px; width:100%; height:340px; }
+  .stair{ flex:1; display:flex; flex-direction:column; justify-content:flex-end; }
+  .stair .label{font-family:var(--display); font-weight:600; font-size:20px; margin-bottom:14px;}
+  .stair .meta{font-family:var(--mono); font-size:12px; color:var(--paper-dim); margin-bottom:14px;}
+  .blocks{display:flex; flex-direction:column-reverse; gap:6px;}
+  .block{ background:var(--ink-2); border:1px solid var(--line); border-top:2px solid var(--accent); height:34px; display:flex; align-items:center; padding:0 12px; font-family:var(--mono); font-size:11px; color:var(--paper-dim);}
+
+  /* tier detail slide */
+  .tier-head{display:flex; align-items:baseline; gap:18px; margin-bottom:8px;}
+  .tier-head .tname{font-family:var(--display); font-weight:700; font-size:clamp(30px,4vw,46px);}
+  .tier-head .tlen{font-family:var(--mono); font-size:14px; color:var(--accent);}
+  ul.dlist{ list-style:none; margin-top:20px; display:flex; flex-direction:column; gap:12px; max-width:60ch;}
+  ul.dlist li{ padding-left:20px; position:relative; font-size:15px; color:var(--paper-dim); line-height:1.5;}
+  ul.dlist li::before{content:'—'; position:absolute; left:0; color:var(--accent);}
+  .start-if{ margin-top:26px; font-family:var(--mono); font-size:13px; color:var(--paper-dim); border-top:1px solid var(--line); padding-top:16px; }
+  .start-if b{color:var(--paper); font-weight:500;}
+
+  /* advise slide - visually distinct */
+  #s9{ background: var(--ink-2); }
+  #s9 .advise-card{ border:1px solid var(--accent); padding:36px; max-width:640px; border-radius:2px;}
+
+  /* portfolio */
+  .portfolio-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; width:100%; }
+  .p-card{ border:1px solid var(--line); padding:20px; background:var(--ink-2); }
+  .p-card .role{ font-family:var(--mono); font-size:11px; color:var(--accent); margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em;}
+  .p-card h3{font-family:var(--display); font-size:16px; margin-bottom:8px;}
+  .p-card p{font-size:13px; color:var(--paper-dim); line-height:1.45;}
+  .disclosure{ margin-top:22px; font-family:var(--mono); font-size:11.5px; color:var(--paper-dim); }
+
+  .partner-cols{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; width:100%; align-items:start; }
+  .partner-col{ border:1px solid var(--line); background:var(--ink-2); padding:16px 14px; display:flex; flex-direction:column; }
+  .partner-col .pillar{ font-family:var(--mono); font-size:10.5px; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
+  .partner-col .clients{ display:flex; flex-wrap:wrap; gap:6px; }
+  .partner-col .clients span{ font-family:var(--mono); font-size:10.5px; border:1px solid var(--line); padding:3px 7px; color:var(--paper-dim); line-height:1.3; }
+
+  /* CTA */
+  #s10 h1{font-size:clamp(32px,5vw,56px);}
+  .cta-row{ display:flex; gap:60px; margin-top:40px; }
+  .cta-row .item .k{font-family:var(--mono); font-size:12px; color:var(--accent); margin-bottom:6px;}
+  .cta-row .item .v{font-size:16px;}
+
+  nav.progress{
+    position:absolute; top:5vw; right:7vw; font-family:var(--mono); font-size:12px; color:var(--paper-dim);
+  }
+
+  /* real cube mark, corner-mounted */
+  #s0 .body-wrap{ align-items:flex-end; }
+  #cubeMark{
+    position:absolute; right:calc(7vw - 8px); bottom:calc(12vw - 8px);
+    width:88px; height:88px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #cubeMark canvas{ cursor:grab; }
+  #cubeMark canvas:active{ cursor:grabbing; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <!-- 0 COVER -->
+  <section class="slide active" id="s0">
+    <div class="eyebrow">CoolCoolCool</div>
+    <div class="body-wrap">
+      <div class="cover-text">
+        <h1>We see the end from the beginning, and build accordingly.</h1>
+        <div class="tag">Capabilities — Design · Strategy · Motion · Production</div>
+      </div>
+    </div>
+    <div id="cubeMark"></div>
+    <div class="footer"><span>Cool Cool Cool <span class="dot">·</span> Capabilities</span><span>01 / 11</span></div>
+  </section>
+
+  <!-- 1 WHY / PROMISE -->
+  <section class="slide" id="s1">
+    <div class="eyebrow">01 — Who We Are</div>
+    <div class="body-wrap">
+      <div class="grid cols-2">
+        <div>
+          <h2>Our Why</h2>
+          <p class="lead">We exist to prove that better work starts with a better working model.</p>
+        </div>
+        <div>
+          <h2>Our Promise</h2>
+          <p class="lead">We see the end from the beginning and build accordingly. Senior creative partnership, embedded from day one, that carries work from strategic clarity through execution — without it breaking along the way.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>Who We Are</span><span>02 / 11</span></div>
+  </section>
+
+  <!-- 2 HOW WE WORK -->
+  <section class="slide" id="s2">
+    <div class="eyebrow">02 — How We Work</div>
+    <h1 style="font-size:clamp(26px,3.4vw,40px); max-width:26ch;">Four disciplines, connected before they splinter.</h1>
+    <div class="body-wrap">
+      <div class="grid cols-3">
+        <div class="pair"><div class="k">STRATEGIC, GROUNDED IN MAKING</div><p>We think upstream and execute downstream. Neither function is separate from the other.</p></div>
+        <div class="pair"><div class="k">SENIOR ONLY</div><p>No inflated titles, no juniors doing senior work.</p></div>
+        <div class="pair"><div class="k">EMBEDDED</div><p>We operate as part of your team, not outside it.</p></div>
+      </div>
+    </div>
+    <div class="footer"><span>How We Work</span><span>03 / 11</span></div>
+  </section>
+
+  <!-- 3 WHO WE'RE BUILT FOR -->
+  <section class="slide" id="s3">
+    <div class="eyebrow">03 — Who We're Built For</div>
+    <h1 style="font-size:clamp(28px,3.8vw,46px); max-width:20ch;">Brands entering their next chapter.</h1>
+    <div class="body-wrap">
+      <ul class="dlist" style="max-width:70ch;">
+        <li>PE-backed companies preparing to scale</li>
+        <li>Growth-stage brands adding complexity</li>
+        <li>Teams without senior creative leadership</li>
+        <li>Marketing leaders who need augmentation without overhead</li>
+        <li>Organizations where misalignment is expensive</li>
+      </ul>
+    </div>
+    <div class="footer"><span>Often there's one person carrying the weight. We work directly with them.</span><span>04 / 11</span></div>
+  </section>
+
+  <!-- 4 ENGAGEMENT OVERVIEW -->
+  <section class="slide" id="s4">
+    <div class="eyebrow">04 — Engagement Model</div>
+    <h1 style="font-size:clamp(26px,3.4vw,40px); max-width:24ch;">Built in two-week sprints. Depth scales with commitment.</h1>
+    <div class="body-wrap" style="align-items:flex-end;">
+      <div class="stairs">
+        <div class="stair">
+          <div class="label">Align</div>
+          <div class="meta">1 sprint · discovery</div>
+          <div class="blocks"><div class="block">SPRINT 1</div></div>
+        </div>
+        <div class="stair">
+          <div class="label">Advance</div>
+          <div class="meta">2+ sprints · rolling</div>
+          <div class="blocks"><div class="block">SPRINT 2</div><div class="block">SPRINT 1</div></div>
+        </div>
+        <div class="stair">
+          <div class="label">Ascend</div>
+          <div class="meta">3+ sprints · embedded</div>
+          <div class="blocks"><div class="block">SPRINT 3</div><div class="block">SPRINT 2</div><div class="block">SPRINT 1</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>Engagement Model</span><span>05 / 11</span></div>
+  </section>
+
+  <!-- 5 ALIGN -->
+  <section class="slide" id="s5">
+    <div class="eyebrow">05 — Engagement · Align</div>
+    <div class="tier-head"><span class="tname">Align</span><span class="tlen">1 SPRINT (2 WEEKS) · FIXED SCOPE</span></div>
+    <p class="lead" style="margin-top:0;">A standalone discovery engagement. We get in before there's a brief, ask the questions that prevent expensive pivots later, and hand you a clear point of view on where the work actually needs to go.</p>
+    <ul class="dlist">
+      <li>2–3 working sessions with your core stakeholders</li>
+      <li>Landscape and competitive scan</li>
+      <li>A point of view on where design, strategy, motion, and production each apply to your problem</li>
+      <li>A recommended path into Advance or Ascend, with a rough sprint roadmap</li>
+    </ul>
+    <div class="start-if"><b>Start here if:</b> you know something needs to change but haven't scoped what yet.</div>
+    <div class="footer"><span>Align</span><span>06 / 11</span></div>
+  </section>
+
+  <!-- 6 ADVANCE -->
+  <section class="slide" id="s6">
+    <div class="eyebrow">06 — Engagement · Advance</div>
+    <div class="tier-head"><span class="tname">Advance</span><span class="tlen">MIN. 2 SPRINTS · ROLLING</span></div>
+    <p class="lead" style="margin-top:0;">One or two disciplines actively producing, the rest on call. Renews at sprint boundaries — no long lock-in.</p>
+    <ul class="dlist">
+      <li>One or two pillars leading (e.g., strategy + design), the other two consulted as needed</li>
+      <li>One pillar-led output per sprint — positioning doc, first-pass expression, campaign concept</li>
+      <li>Weekly async check-in</li>
+      <li>Sprint-close summary and next-sprint recommendation</li>
+    </ul>
+    <div class="start-if"><b>Start here if:</b> the direction is set and you need senior hands moving it forward.</div>
+    <div class="footer"><span>Advance</span><span>07 / 11</span></div>
+  </section>
+
+  <!-- 7 ASCEND -->
+  <section class="slide" id="s7">
+    <div class="eyebrow">07 — Engagement · Ascend</div>
+    <div class="tier-head"><span class="tname">Ascend</span><span class="tlen">MIN. 3 SPRINTS · CONTINUOUS</span></div>
+    <p class="lead" style="margin-top:0;">All four pillars active in parallel, every sprint. The closest thing we offer to a fractional senior team.</p>
+    <ul class="dlist">
+      <li>Design, strategy, motion, and production all working simultaneously</li>
+      <li>Dedicated PM/traffic across the group</li>
+      <li>Weekly live sync, not async</li>
+      <li>Production-ready output each sprint, not just concepts</li>
+      <li>Monthly retro that doubles as a client-facing wrap-up moment</li>
+    </ul>
+    <div class="start-if"><b>Start here if:</b> you need an embedded team carrying the work end to end.</div>
+    <div class="footer"><span>Ascend</span><span>08 / 11</span></div>
+  </section>
+
+  <!-- 8 PORTFOLIO -->
+  <section class="slide" id="s8">
+    <div class="eyebrow">08 — The Team, Before CoolCoolCool</div>
+    <h1 style="font-size:clamp(20px,2.4vw,28px); max-width:34ch; margin-bottom:0;">Four disciplines. Each with real work at scale — elsewhere.</h1>
+    <div class="body-wrap">
+      <div class="partner-cols">
+        <div class="partner-col">
+          <div class="pillar">Production · Ops</div>
+          <div class="clients"><span>Lincoln</span><span>IBM</span><span>KIND</span><span>Campbell's</span><span>OLSC Brooklyn</span></div>
+        </div>
+        <div class="partner-col">
+          <div class="pillar">Design · Branding</div>
+          <div class="clients"><span>Coca-Cola</span><span>Amex</span><span>Huggies</span><span>Goodyear</span><span>Chase</span><span>Discovery</span></div>
+        </div>
+        <div class="partner-col">
+          <div class="pillar">Strategy</div>
+          <div class="clients"><span>PUMA</span><span>Amex</span><span>Pfizer</span><span>UPS</span><span>Microsoft</span></div>
+        </div>
+        <div class="partner-col">
+          <div class="pillar">Motion</div>
+          <div class="clients"><span>Peloton</span><span>Dunkin'</span><span>Tory Burch</span><span>Zocdoc</span><span>Marriott Bonvoy</span><span>Twitch</span><span>Salesforce</span></div>
+        </div>
+      </div>
+      <div class="disclosure">All work shown reflects individual team members' prior experience at previous employers, agencies, or independent R&D — not prior CoolCoolCool client engagements.</div>
+    </div>
+    <div class="footer"><span>The Team</span><span>09 / 11</span></div>
+  </section>
+
+  <!-- 9 ADVISE -->
+  <section class="slide" id="s9">
+    <div class="eyebrow">09 — Advise</div>
+    <div class="body-wrap">
+      <div class="advise-card">
+        <h2>The monthly wrap-up.</h2>
+        <p class="lead" style="margin-top:12px;">A short, curated note on the cool work we're watching, plus one point of view from the team. Free. No pitch inside.</p>
+        <ul class="dlist" style="margin-top:22px;">
+          <li>Sent monthly, on the same day every month</li>
+          <li>Built for past clients, prospects, and our network</li>
+          <li>Occasional live sessions when there's a body of work worth talking through</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Advise · Stay close, no strings</span><span>10 / 11</span></div>
+  </section>
+
+  <!-- 10 CTA -->
+  <section class="slide" id="s10">
+    <div class="eyebrow">10 — Next Steps</div>
+    <div class="body-wrap">
+      <div>
+        <h1>Start with Align. See where the rest of the work wants to go.</h1>
+        <div class="cta-row">
+          <div class="item"><div class="k">CONTACT</div><div class="v">hello@coolcoolcool.io</div></div>
+          <div class="item"><div class="k">BASED IN</div><div class="v">Brooklyn · Manhattan · LA</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>Cool Cool Cool — all work carries forward.</span><span>11 / 11</span></div>
+  </section>
+
+</div>
+
+<nav class="progress" id="progress">01 / 11</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let i = 0;
+  const total = slides.length;
+  function show(n){
+    slides[i].classList.remove('active');
+    i = (n + total) % total;
+    slides[i].classList.add('active');
+    document.getElementById('progress').textContent = String(i+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+  }
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowRight' || e.key === ' ') show(i+1);
+    if(e.key === 'ArrowLeft') show(i-1);
+  });
+  document.getElementById('deck').addEventListener('click', (e)=>{
+    if(e.target.closest('#cubeMark')) return;
+    const rect = document.getElementById('deck').getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if(x > rect.width/2) show(i+1); else show(i-1);
+  });
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+async function initCube() {
+    const container = document.getElementById('cubeMark');
+    if (!container) return;
+
+    await document.fonts.ready;
+
+    const size = 88;
+    const dpr = Math.min(window.devicePixelRatio, 2);
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+    camera.position.set(3.6, 2.7, 4.5);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(dpr);
+    renderer.setSize(size, size);
+    renderer.domElement.style.width = size + 'px';
+    renderer.domElement.style.height = size + 'px';
+    container.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xe8f0f8, 0.6));
+    const key = new THREE.DirectionalLight(0xffffff, 2.0);
+    key.position.set(3, 5, 4);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xc0d8e8, 0.4);
+    fill.position.set(-4, -1, -3);
+    scene.add(fill);
+
+    const faceColors = [
+        '#e8eef2', '#c8d8e4', '#f4f8fa',
+        '#98b8cc', '#d8e4ec', '#b0c8d8',
+    ];
+
+    function makeTex(hex) {
+        const s = 256;
+        const cv = document.createElement('canvas');
+        cv.width = s; cv.height = s;
+        const ctx = cv.getContext('2d');
+
+        ctx.fillStyle = hex;
+        ctx.fillRect(0, 0, s, s);
+
+        ctx.strokeStyle = 'rgba(0,40,80,0.1)';
+        ctx.lineWidth = 1.4;
+        const step = 12;
+        for (let i = -s; i < s * 2; i += step) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i + s, s);
+            ctx.stroke();
+        }
+        for (let i = -s; i < s * 2; i += step) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i - s, s);
+            ctx.stroke();
+        }
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(0,30,60,0.38)';
+        const rows = 3;
+        const pad = 4;
+        const rowH = (s - pad * 2) / rows;
+        const fontSize = Math.floor(rowH * 1.05);
+        ctx.font = '900 ' + fontSize + 'px "Inter", system-ui, sans-serif';
+        for (let r = 0; r < rows; r++) {
+            ctx.fillText('COOL', s / 2, pad + rowH * r + rowH / 2);
+        }
+
+        const tex = new THREE.CanvasTexture(cv);
+        tex.needsUpdate = true;
+        return tex;
+    }
+
+    const geo = new THREE.BoxGeometry(2, 2, 2);
+    const mats = faceColors.map(c => new THREE.MeshLambertMaterial({ map: makeTex(c) }));
+    const cube = new THREE.Mesh(geo, mats);
+    cube.rotation.x = 0.4;
+    cube.rotation.y = 0.6;
+    scene.add(cube);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.055;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+
+    let userGrabbed = false;
+    controls.addEventListener('start', () => { userGrabbed = true; });
+    controls.addEventListener('end', () => { userGrabbed = false; });
+
+    // no scroll in a slide deck — idle auto-rotation instead of scroll parallax
+    function tick() {
+        requestAnimationFrame(tick);
+        if (!userGrabbed) {
+            cube.rotation.y += 0.004;
+        }
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    tick();
+}
+
+initCube();
+</script>
+</body>
+</html>
